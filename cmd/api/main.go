@@ -7,13 +7,18 @@ import (
 	"time"
 
 	"github.com/zahidhasanzh/olx-api/internal/config"
+	"github.com/zahidhasanzh/olx-api/internal/db"
 	"github.com/zahidhasanzh/olx-api/internal/handlers"
 )
 
 func main() {
-
 	cnf := config.MustLoad()
+	_, err := db.Connect(cnf.DatabaseUrl)
+	if err != nil{
+		log.Fatalf("main.db.connect: %v", err)
+	}
 
+	fmt.Println("database connected")
 	fmt.Println("starting olx server...")
 
 	mux := http.NewServeMux()
