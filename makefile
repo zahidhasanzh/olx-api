@@ -1,4 +1,4 @@
-.PHONY: build-api run build-migrate migrate-up migrate-down clean
+.PHONY: build-api run build-migrate migrate-up migrate-down migrate-clean clean
 
 build-api:
 	@go build -o bin/api ./cmd/api
@@ -15,5 +15,7 @@ migrate-up: build-migrate
 migrate-down: build-migrate
 	@./bin/migrate down
 
+migrate-clean: build-migrate
+	@./bin/migrate clean
 clean:
 	@rm -rf bin/
