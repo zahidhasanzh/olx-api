@@ -24,6 +24,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handlers.Healthz)
 	mux.HandleFunc("GET /listings", handlers.List(db))
+	mux.HandleFunc("DELETE /listings/{id}", handlers.DeleteListing(db))
 
 	srv := http.Server{
 		Addr:         ":" + cnf.Port,
@@ -32,7 +33,7 @@ func main() {
 		WriteTimeout: time.Second * 30,
 		IdleTimeout:  time.Second * 60,
 	}
-	fmt.Printf("server is listening on %s", srv.Addr)
+	log.Printf("server is listening on %s", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
