@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/zahidhasanzh/olx-api/internal/middleware"
 )
 
 type listing struct {
@@ -32,6 +34,7 @@ func NewListingHandler(db *sql.DB, logger *slog.Logger) *ListingHandler {
 
 func (lh ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
 	rows, err := lh.db.QueryContext(ctx, `SELECT id, title, description, price, city, created_at
 			FROM listings 
 			ORDER BY created_at DESC 
@@ -59,17 +62,18 @@ func (lh ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 	if err := rows.Err(); err != nil {
 		lh.logger.Error("rows scan error", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
-		return 
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	 _ = json.NewEncoder(w).Encode(listings)
+	_ = json.NewEncoder(w).Encode(listings)
 }
 
 func (lh ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	requestId := middleware.RequestIDFromContext(ctx)
 	id := r.PathValue("id")
 
 	// lh.logger.Debug("debug log", "listing_id", id)
@@ -78,7 +82,7 @@ func (lh ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	_, err := lh.db.ExecContext(ctx, `DELETE FROM listing WHERE id = $1`, id)
 	if err != nil {
-		lh.logger.Error("delete failed", "listing_id", id, "err", err)
+		lh.logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
