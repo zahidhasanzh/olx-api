@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zahidhasanzh/olx-api/internal/httpx"
 	"github.com/zahidhasanzh/olx-api/internal/middleware"
 )
 
@@ -83,7 +84,7 @@ func (lh ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	_, err := lh.db.ExecContext(ctx, `DELETE FROM listing WHERE id = $1`, id)
 	if err != nil {
 		lh.logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.CodeInternalError)
 		return
 	}
 
