@@ -23,7 +23,7 @@ func main() {
 
 	logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
-		Level: slog.LevelInfo,
+		Level:     slog.LevelInfo,
 	})
 	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
@@ -37,6 +37,7 @@ func main() {
 	mux.HandleFunc("GET /healthz", handlers.Healthz)
 	mux.HandleFunc("GET /listings", lh.List)
 	mux.HandleFunc("DELETE /listings/{id}", lh.Delete)
+	mux.HandleFunc("POST /listings", lh.Create)
 
 	handler := middleware.RequestId(mux)
 

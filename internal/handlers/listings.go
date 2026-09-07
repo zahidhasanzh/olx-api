@@ -91,3 +91,38 @@ func (lh ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 
 }
+
+func (lh ListingHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var req listing
+
+	ctx := r.Context()
+	requestId := middleware.RequestIDFromContext(ctx)
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		lh.logger.Error("failed to decode", "request_id", requestId, "erro", err)
+		httpx.Error(w, http.StatusBadRequest, "invalid body", httpx.MalFormedJson)
+		return
+	}
+
+	row := lh.db.QueryRowContext(ctx, `
+    INSERT INTO listings(title, description, price, city)
+    VALUES($1, $2, $3, $4)
+    RETURNING id
+`, req.Title, req.Description, req.Price, req.City)
+
+	var id string
+	if err := row.Scan(&id); err != nil {
+		lh.logger.Error("failed to insert", "listing_id", requestId, "err", err)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.CodeInternalError)
+		return
+	}
+	lh.logger.Info("listing created", "request_id", requestId, "listing_id", id)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"id": id,
+	})
+
+}
